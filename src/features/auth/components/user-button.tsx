@@ -6,10 +6,17 @@ import { DropdownMenuItem } from "@radix-ui/react-dropdown-menu";
 import { useCurrentUser } from "../api/use-current-user";
 import { Loader, LogOut } from "lucide-react";
 import { useAuthActions } from "@convex-dev/auth/react";
+import { useRouter } from "next/navigation";
 
 export const UserButton = () => {
   const { signOut } = useAuthActions();
   const { data, isLoading } = useCurrentUser();
+  const router = useRouter();
+
+  const onSignOut = async () => {
+    await signOut();
+    router.replace("/auth");
+  };
 
   if (isLoading) return <Loader className="size-4 animate-spin text-muted-foreground" />;
 
@@ -28,7 +35,7 @@ export const UserButton = () => {
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="center" side="right" className="w-60">
-        <DropdownMenuItem className="flex items-center h-10" onClick={() => signOut()}>
+        <DropdownMenuItem className="flex items-center h-10 cursor-pointer" onClick={() => onSignOut()}>
           <LogOut className="size-4 mr-2" />
           Log out
         </DropdownMenuItem>
