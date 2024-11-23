@@ -9,6 +9,17 @@ export const get = query({
   },
 });
 
+export const getById = query({
+  args: { id: v.id("workspaces") },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("Unathorized");
+    }
+    return await ctx.db.get(args.id);
+  },
+});
+
 export const create = mutation({
   args: {
     name: v.string(),
