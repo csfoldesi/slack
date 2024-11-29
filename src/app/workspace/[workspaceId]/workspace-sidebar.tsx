@@ -6,12 +6,15 @@ import { WorkspaceHeader } from "./workspace-header";
 import { SidebarItem } from "./sidebar-item";
 import { useGetChannels } from "@/features/channels/api/use-get-channels";
 import { WorkspaceSection } from "./workspace-section";
+import { useGetMembers } from "@/features/members/api/use-get-members";
+import { UserItem } from "./user-item";
 
 export const WorkspaceSidebar = () => {
   const workspaceId = useWorkspaceId();
   const { data: member, isLoading: memberLoading } = useCurrentMember({ workspaceId });
   const { data: workspace, isLoading: workspaceLoading } = useGetWorkspace({ id: workspaceId });
   const { data: channels } = useGetChannels({ workspaceId });
+  const { data: members } = useGetMembers({ workspaceId });
 
   if (workspaceLoading || memberLoading) {
     return (
@@ -39,6 +42,11 @@ export const WorkspaceSidebar = () => {
       </div>
       <WorkspaceSection label="channels" hint="New channel" onNew={() => {}}>
         {channels?.map((item) => <SidebarItem label={item.name} icon={HashIcon} id={item._id} key={item._id} />)}
+      </WorkspaceSection>
+      <WorkspaceSection label="Direct messages" hint="New DM" onNew={() => {}}>
+      {members?.map((item) => (
+        <UserItem key={item._id} id={item._id} label={item.user.name} image={item.user.image} />
+      ))}
       </WorkspaceSection>
     </div>
   );
