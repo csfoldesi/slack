@@ -8,6 +8,7 @@ import { useGetChannels } from "@/features/channels/api/use-get-channels";
 import { WorkspaceSection } from "./workspace-section";
 import { useGetMembers } from "@/features/members/api/use-get-members";
 import { UserItem } from "./user-item";
+import { useCreteChannelModal } from "@/features/channels/store/use-create-channel-modal";
 
 export const WorkspaceSidebar = () => {
   const workspaceId = useWorkspaceId();
@@ -15,6 +16,8 @@ export const WorkspaceSidebar = () => {
   const { data: workspace, isLoading: workspaceLoading } = useGetWorkspace({ id: workspaceId });
   const { data: channels } = useGetChannels({ workspaceId });
   const { data: members } = useGetMembers({ workspaceId });
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_open, setOpen] = useCreteChannelModal();
 
   if (workspaceLoading || memberLoading) {
     return (
@@ -40,13 +43,16 @@ export const WorkspaceSidebar = () => {
         <SidebarItem label="Threads" icon={MessageSquareTextIcon} id="threads" />
         <SidebarItem label="Drafts & Sent" icon={SendHorizonalIcon} id="drafts" />
       </div>
-      <WorkspaceSection label="channels" hint="New channel" onNew={() => {}}>
+      <WorkspaceSection
+        label="Channels"
+        hint="New channel"
+        onNew={member.role === "admin" ? () => setOpen(true) : undefined}>
         {channels?.map((item) => <SidebarItem label={item.name} icon={HashIcon} id={item._id} key={item._id} />)}
       </WorkspaceSection>
       <WorkspaceSection label="Direct messages" hint="New DM" onNew={() => {}}>
-      {members?.map((item) => (
-        <UserItem key={item._id} id={item._id} label={item.user.name} image={item.user.image} />
-      ))}
+        {members?.map((item) => (
+          <UserItem key={item._id} id={item._id} label={item.user.name} image={item.user.image} />
+        ))}
       </WorkspaceSection>
     </div>
   );
