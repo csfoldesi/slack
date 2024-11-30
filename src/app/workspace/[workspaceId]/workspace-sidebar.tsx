@@ -9,9 +9,11 @@ import { WorkspaceSection } from "./workspace-section";
 import { useGetMembers } from "@/features/members/api/use-get-members";
 import { UserItem } from "./user-item";
 import { useCreteChannelModal } from "@/features/channels/store/use-create-channel-modal";
+import { useChannelId } from "@/hooks/use-channel-id";
 
 export const WorkspaceSidebar = () => {
   const workspaceId = useWorkspaceId();
+  const activeChannelId = useChannelId();
   const { data: member, isLoading: memberLoading } = useCurrentMember({ workspaceId });
   const { data: workspace, isLoading: workspaceLoading } = useGetWorkspace({ id: workspaceId });
   const { data: channels } = useGetChannels({ workspaceId });
@@ -47,7 +49,15 @@ export const WorkspaceSidebar = () => {
         label="Channels"
         hint="New channel"
         onNew={member.role === "admin" ? () => setOpen(true) : undefined}>
-        {channels?.map((item) => <SidebarItem label={item.name} icon={HashIcon} id={item._id} key={item._id} />)}
+        {channels?.map((item) => (
+          <SidebarItem
+            label={item.name}
+            icon={HashIcon}
+            id={item._id}
+            key={item._id}
+            variant={item._id === activeChannelId ? "active" : "default"}
+          />
+        ))}
       </WorkspaceSection>
       <WorkspaceSection label="Direct messages" hint="New DM" onNew={() => {}}>
         {members?.map((item) => (
