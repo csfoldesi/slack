@@ -32,8 +32,8 @@ export const EmojiPopover = ({ children, hint = "Emoji", onEmojiSelect }: EmojiP
           <PopoverTrigger asChild>
             <TooltipTrigger asChild>{children}</TooltipTrigger>
           </PopoverTrigger>
-          <TooltipContent className="bg-black text-white border border-white/5">
-            <p className="font-medium text-xs">{hint}</p>
+          <TooltipContent className="bg-black text-white border border-white/5 rounded-md">
+            <p className="font-medium text-xs p-1.5">{hint}</p>
           </TooltipContent>
         </Tooltip>
         <PopoverContent className="p-0 w-full border-none shadow-none">
