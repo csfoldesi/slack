@@ -2,17 +2,26 @@
 
 import Editor from "@/components/editor";
 import { useCreateMessage } from "@/features/messages/api/use-create-message";
+import { useGenerateUploadUrl } from "@/features/upload/api/use-generate-upload-url";
 import { useChannelId } from "@/hooks/use-channel-id";
 import { useWorkspaceId } from "@/hooks/use-workspace-id";
 import Quill from "quill";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
+import { Id } from "../../../../../../convex/_generated/dataModel";
 
 //const Editor = dynamic(() => import("@/components/editor"), { ssr: false });
 
 interface ChatInputProps {
   placeholder: string;
 }
+
+type CreateMessageValues = {
+  channelId: Id<"channels">;
+  workspaceId: Id<"workspaces">;
+  body: string;
+  image: Id<"_storage"> | undefined;
+};
 
 export const ChatInput = ({ placeholder }: ChatInputProps) => {
   const [editorKey, setEditorKey] = useState(0);
@@ -22,16 +31,46 @@ export const ChatInput = ({ placeholder }: ChatInputProps) => {
   const channelId = useChannelId();
 
   const { mutate: createMessage } = useCreateMessage();
+  const { mutate: generateUploadUrl } = useGenerateUploadUrl();
 
   const handleSubmit = async ({ body, image }: { body: string; image: File | null }) => {
     try {
       setIsPending(true);
-      await createMessage({ workspaceId, channelId, body }, { throwError: true });
+      editorRef.current?.enable(false);
+
+      const values: CreateMessageValues = {
+        channelId,
+        workspaceId,
+        body,
+        image: undefined,
+      };
+      if (image) {
+        const url = await generateUploadUrl({}, { throwError: true });
+        if (!url) {
+          throw new Error("Url not found");
+        }
+
+        const result = await fetch(url!, {
+          method: "POST",
+          headers: { "Content-type": image.type },
+          body: image,
+        });
+
+        if (!result.ok) {
+          throw new Error("Failed to upload image");
+        }
+
+        const { storageId } = await result.json();
+        values.image = storageId;
+      }
+
+      await createMessage(values, { throwError: true });
       setEditorKey((prevKey) => prevKey + 1);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       toast.error("Failed to send message");
     } finally {
+      editorRef.current?.enable(true);
       setIsPending(false);
     }
   };
