@@ -4,6 +4,7 @@ import { Renderer } from "./renderer";
 import { Hint } from "./hint";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Thumbnail } from "./thumbnail";
+import { Toolbar } from "./toolbar";
 
 interface MessageProps {
   id: Id<"messages">;
@@ -95,6 +96,17 @@ export const Message = ({
           {updatedAt ? <span className="text-xs text-muted-foreground">(edited)</span> : null}
         </div>
       </div>
+      {!isEditing && (
+        <Toolbar
+          isAuthor={isAuthor}
+          isPending={false}
+          handleEdit={() => setEditingId(id)}
+          handleThread={() => {}}
+          handleDelete={() => {}}
+          handleReaction={() => {}}
+          hideThreadButton={hideThreadButton}
+        />
+      )}
     </div>
   );
 };

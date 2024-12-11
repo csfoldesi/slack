@@ -95,11 +95,11 @@ export const MessageList = ({
               />
             );
           })}
-          {variant === "channel" && channelName && channelCreationTime && (
-            <ChannelHero name={channelName} creationTime={channelCreationTime} />
-          )}
         </div>
       ))}
+      {variant === "channel" && channelName && channelCreationTime && (
+        <ChannelHero name={channelName} creationTime={channelCreationTime} />
+      )}
     </div>
   );
 };
