@@ -166,9 +166,10 @@ export const get = query({
                 count: reactions.filter((r) => r.value === reaction.value).length,
               };
             });
+
             const dedupedReactions = reactionsWithCounts.reduce(
               (acc, reaction) => {
-                const existingReaction = acc.find((r) => r.value === reaction._id);
+                const existingReaction = acc.find((r) => r.value === reaction.value);
                 if (existingReaction) {
                   existingReaction.memberIds = Array.from(new Set([...existingReaction.memberIds, reaction.memberId]));
                 } else {
@@ -176,9 +177,14 @@ export const get = query({
                 }
                 return acc;
               },
-              [] as (Doc<"reactions"> & { count: number; memberIds: Id<"members">[] })[]
+              [] as (Doc<"reactions"> & {
+                count: number;
+                memberIds: Id<"members">[];
+              })[]
             );
-            const reactionsWithoutMemberIdProperty = dedupedReactions.map((memberId, ...rest) => rest);
+
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const reactionsWithoutMemberIdProperty = dedupedReactions.map(({ memberId, ...rest }) => rest);
 
             return {
               ...message,
