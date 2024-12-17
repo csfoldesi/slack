@@ -5,18 +5,84 @@ import { useGetMessage } from "../api/use-get-message";
 import { Message } from "@/components/message";
 import { useCurrentMember } from "@/features/members/api/use-current-member";
 import { useWorkspaceId } from "@/hooks/use-workspace-id";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import Editor from "@/components/editor";
+import Quill from "quill";
+import { useCreateMessage } from "../api/use-create-message";
+import { useGenerateUploadUrl } from "@/features/upload/api/use-generate-upload-url";
+import { useChannelId } from "@/hooks/use-channel-id";
+import { toast } from "sonner";
 
 interface ThreadProps {
   messageId: Id<"messages">;
   onClose: () => void;
 }
 
+type CreateMessageValues = {
+  channelId: Id<"channels">;
+  workspaceId: Id<"workspaces">;
+  parentMessageId: Id<"messages">;
+  body: string;
+  image: Id<"_storage"> | undefined;
+};
+
 export const Thread = ({ messageId, onClose }: ThreadProps) => {
   const workspaceId = useWorkspaceId();
+  const channelId = useChannelId();
+
+  const [editingId, setEditingId] = useState<Id<"messages"> | null>(null);
+  const [editorKey, setEditorKey] = useState(0);
+  const [isPending, setIsPending] = useState(false);
+  const editorRef = useRef<Quill | null>(null);
+
   const { data: currentMember } = useCurrentMember({ workspaceId });
   const { data: message, isLoading: loadingMessage } = useGetMessage({ id: messageId });
-  const [editingId, setEditingId] = useState<Id<"messages"> | null>(null);
+
+  const { mutate: createMessage } = useCreateMessage();
+  const { mutate: generateUploadUrl } = useGenerateUploadUrl();
+
+  const handleSubmit = async ({ body, image }: { body: string; image: File | null }) => {
+    try {
+      setIsPending(true);
+      editorRef.current?.enable(false);
+
+      const values: CreateMessageValues = {
+        channelId,
+        workspaceId,
+        parentMessageId: messageId,
+        body,
+        image: undefined,
+      };
+      if (image) {
+        const url = await generateUploadUrl({}, { throwError: true });
+        if (!url) {
+          throw new Error("Url not found");
+        }
+
+        const result = await fetch(url!, {
+          method: "POST",
+          headers: { "Content-type": image.type },
+          body: image,
+        });
+
+        if (!result.ok) {
+          throw new Error("Failed to upload image");
+        }
+
+        const { storageId } = await result.json();
+        values.image = storageId;
+      }
+
+      await createMessage(values, { throwError: true });
+      setEditorKey((prevKey) => prevKey + 1);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      toast.error("Failed to send message");
+    } finally {
+      editorRef.current?.enable(true);
+      setIsPending(false);
+    }
+  };
 
   if (loadingMessage) {
     return (
@@ -74,6 +140,15 @@ export const Thread = ({ messageId, onClose }: ThreadProps) => {
           reactions={message.reactions}
           isEditing={editingId === message._id}
           setEditingId={setEditingId}
+        />
+      </div>
+      <div className="px-4">
+        <Editor
+          key={editorKey}
+          onSubmit={handleSubmit}
+          disabled={isPending}
+          innerRef={editorRef}
+          placeHolder="Reply..."
         />
       </div>
     </div>
