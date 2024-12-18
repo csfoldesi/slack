@@ -10,8 +10,10 @@ import { useGetMembers } from "@/features/members/api/use-get-members";
 import { UserItem } from "./user-item";
 import { useCreteChannelModal } from "@/features/channels/store/use-create-channel-modal";
 import { useChannelId } from "@/hooks/use-channel-id";
+import { useMemberId } from "@/hooks/use-member-id";
 
 export const WorkspaceSidebar = () => {
+  const memberId = useMemberId();
   const workspaceId = useWorkspaceId();
   const activeChannelId = useChannelId();
   const { data: member, isLoading: memberLoading } = useCurrentMember({ workspaceId });
@@ -61,7 +63,13 @@ export const WorkspaceSidebar = () => {
       </WorkspaceSection>
       <WorkspaceSection label="Direct messages" hint="New DM" onNew={() => {}}>
         {members?.map((item) => (
-          <UserItem key={item._id} id={item._id} label={item.user.name} image={item.user.image} />
+          <UserItem
+            key={item._id}
+            id={item._id}
+            label={item.user.name}
+            image={item.user.image}
+            variant={item._id === memberId ? "active" : "default"}
+          />
         ))}
       </WorkspaceSection>
     </div>
