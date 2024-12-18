@@ -49,6 +49,7 @@ export const MessageList = ({
     },
     {} as Record<string, typeof data>
   );
+  
   const formatDateLabel = (dateStr: string) => {
     const date = new Date(dateStr);
     if (isToday(date)) return "Today";
