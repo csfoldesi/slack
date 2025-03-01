@@ -22,3 +22,6 @@
 - React TypeScript
 - Tailwind CSS
 - Shadcn UI
+
+## Demo app
+https://slack.appx.hu
